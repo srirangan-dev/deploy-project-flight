@@ -29,7 +29,10 @@ export default function Payment() {
   const tax     = Math.floor(base * 0.12);
   const total   = base + seatFee + tax;
 
-  const setC = (k, v) => setCard((c) => ({ ...c, [k]: v }));
+  // ✅ Clear error on any input interaction
+  const clearError = () => { if (error) setError(""); };
+
+  const setC = (k, v) => { setCard((c) => ({ ...c, [k]: v })); clearError(); };
 
   const formatCard = (v) =>
     v.replace(/\D/g, "").slice(0, 16).replace(/(.{4})/g, "$1 ").trim();
@@ -39,35 +42,37 @@ export default function Payment() {
     return n.length >= 3 ? `${n.slice(0, 2)}/${n.slice(2)}` : n;
   };
 
-  // ✅ handlePay is now async — properly awaits addBooking
+  // ✅ Clear error when switching payment method
+  const handleMethodChange = (v) => {
+    setMethod(v);
+    setError("");
+  };
+
   const handlePay = async (e) => {
     e.preventDefault();
     setProcessing(true);
     setError("");
-
     try {
-      // ✅ Pass paymentMethod so backend saves it correctly
       const booking = await addBooking({
         flight:        selectedFlight,
         passenger:     passengerInfo,
         seat:          selectedSeat?.id,
         travelClass:   selectedClass,
         totalAmount:   total,
-        paymentMethod: method,   // ← card / upi / netbanking
+        paymentMethod: method,
       });
-
       setNewBooking(booking);
       setDone(true);
       resetBookingFlow();
     } catch (err) {
-      setError("Payment failed. Please try again.");
+      setError(err.message || "Payment failed. Please try again.");
       console.error(err);
     } finally {
       setProcessing(false);
     }
   };
 
-  // ✅ Success screen
+  // ── Success screen ────────────────────────────────────────────────
   if (done && newBooking) {
     return (
       <div className="page-wrapper">
@@ -75,7 +80,6 @@ export default function Payment() {
           <div className="success-icon">✓</div>
           <h1>Booking <span className="gold">Confirmed!</span></h1>
           <p className="muted">Your flight has been booked successfully.</p>
-
           <div className="card success-detail">
             <div className="success-row">
               <span>Booking ID</span>
@@ -91,9 +95,7 @@ export default function Payment() {
             </div>
             <div className="success-row">
               <span>Passenger</span>
-              <strong>
-                {newBooking.passenger?.firstName} {newBooking.passenger?.lastName}
-              </strong>
+              <strong>{newBooking.passenger?.firstName} {newBooking.passenger?.lastName}</strong>
             </div>
             <div className="success-row">
               <span>Class</span>
@@ -110,10 +112,9 @@ export default function Payment() {
               <strong className="gold">₹{total.toLocaleString("en-IN")}</strong>
             </div>
           </div>
-
           <div className="success-actions">
-            <button className="btn-primary"  onClick={() => navigate("/history")}>View Ticket</button>
-            <button className="btn-outline"  onClick={() => navigate("/")}>Book Another</button>
+            <button className="btn-primary" onClick={() => navigate("/history")}>View Ticket</button>
+            <button className="btn-outline" onClick={() => navigate("/")}>Book Another</button>
           </div>
         </div>
       </div>
@@ -129,8 +130,9 @@ export default function Payment() {
         </div>
 
         <div className="payment-layout">
-          {/* ── Payment form ── */}
           <div className="payment-form card">
+
+            {/* ── Method tabs ── */}
             <div className="method-tabs">
               {[
                 { v: "card",       l: "💳 Card" },
@@ -140,7 +142,7 @@ export default function Payment() {
                 <button
                   key={v}
                   className={`method-tab ${method === v ? "active" : ""}`}
-                  onClick={() => setMethod(v)}
+                  onClick={() => handleMethodChange(v)}   // ✅ clears error
                   type="button"
                 >
                   {l}
@@ -149,7 +151,8 @@ export default function Payment() {
             </div>
 
             <form onSubmit={handlePay}>
-              {/* Card */}
+
+              {/* ── Card ── */}
               {method === "card" && (
                 <div className="card-form">
                   <div className="form-group">
@@ -194,36 +197,61 @@ export default function Payment() {
                 </div>
               )}
 
-              {/* UPI */}
+              {/* ── UPI ── */}
               {method === "upi" && (
                 <div className="form-group">
                   <label>UPI ID</label>
                   <input
                     value={upiId}
-                    onChange={(e) => setUpiId(e.target.value)}
+                    onChange={(e) => { setUpiId(e.target.value); clearError(); }}  // ✅
                     placeholder="yourname@paytm"
                     required
                   />
                 </div>
               )}
 
-              {/* Net Banking */}
+              {/* ── Net Banking ── */}
               {method === "netbanking" && (
                 <div className="netbanking-grid">
                   {["SBI", "HDFC", "ICICI", "Axis", "Kotak", "PNB"].map((b) => (
                     <label key={b} className="bank-option">
-                      <input type="radio" name="bank" value={b} required />
+                      <input
+                        type="radio"
+                        name="bank"
+                        value={b}
+                        onChange={clearError}   // ✅
+                        required
+                      />
                       <span className="bank-name">{b}</span>
                     </label>
                   ))}
                 </div>
               )}
 
-              {/* ✅ Error message */}
+              {/* ── Error ── */}
               {error && (
-                <p style={{ color: "var(--danger, #e74c3c)", marginTop: 8, fontSize: 14 }}>
-                  ⚠ {error}
-                </p>
+                <div style={{
+                  display: "flex", alignItems: "center",
+                  justifyContent: "space-between",
+                  background: "#2d1414", border: "1px solid #e74c3c",
+                  borderRadius: 6, padding: "8px 12px", marginTop: 8,
+                }}>
+                  <p style={{ color: "#e74c3c", margin: 0, fontSize: 14 }}>
+                    ⚠ {error}
+                  </p>
+                  {/* ✅ Manual dismiss button */}
+                  <button
+                    type="button"
+                    onClick={() => setError("")}
+                    style={{
+                      background: "none", border: "none",
+                      color: "#e74c3c", cursor: "pointer",
+                      fontSize: 16, lineHeight: 1, padding: "0 4px",
+                    }}
+                  >
+                    ✕
+                  </button>
+                </div>
               )}
 
               <button
@@ -242,7 +270,6 @@ export default function Payment() {
           <div className="payment-summary card">
             <h3>Order Summary</h3>
             <div className="divider" />
-
             <div className="sum-flight">
               <div className="sf-route">{selectedFlight.from} → {selectedFlight.to}</div>
               <div className="sf-meta muted">{selectedFlight.airline} · {selectedFlight.flightNumber}</div>
@@ -259,22 +286,12 @@ export default function Payment() {
                 <div className="sf-meta muted">Seat: {selectedSeat.id}</div>
               )}
             </div>
-
             <div className="divider" />
-            <div className="price-row">
-              <span>Base Fare</span>
-              <span>₹{base.toLocaleString("en-IN")}</span>
-            </div>
+            <div className="price-row"><span>Base Fare</span><span>₹{base.toLocaleString("en-IN")}</span></div>
             {seatFee > 0 && (
-              <div className="price-row">
-                <span>Seat Fee</span>
-                <span>₹{seatFee}</span>
-              </div>
+              <div className="price-row"><span>Seat Fee</span><span>₹{seatFee}</span></div>
             )}
-            <div className="price-row">
-              <span>Tax (12%)</span>
-              <span>₹{tax.toLocaleString("en-IN")}</span>
-            </div>
+            <div className="price-row"><span>Tax (12%)</span><span>₹{tax.toLocaleString("en-IN")}</span></div>
             <div className="divider" />
             <div className="price-row total">
               <span>Total</span>

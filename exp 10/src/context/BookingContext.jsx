@@ -3,7 +3,6 @@ import { api } from "../api";
 
 const BookingContext = createContext(null);
 
-// ✅ Helper: reshape flat DB row → TicketCard format
 const reshapeBooking = (row) => ({
   bookingId:   row.booking_id,
   status:      row.status || "Confirmed",
@@ -41,22 +40,20 @@ export function BookingProvider({ children }) {
     } catch { return null; }
   });
 
-  const [searchParams, setSearchParams] = useState(null);
+  const [searchParams,   setSearchParams]   = useState(null);
   const [selectedFlight, setSelectedFlight] = useState(null);
-  const [selectedClass, setSelectedClass] = useState("economy");
-  const [passengerInfo, setPassengerInfo] = useState({
+  const [selectedClass,  setSelectedClass]  = useState("economy");
+  const [passengerInfo,  setPassengerInfo]  = useState({
     firstName: "", lastName: "", email: "",
     phone: "", dob: "", gender: "", passportNo: "",
   });
   const [selectedSeat, setSelectedSeat] = useState(null);
-  const [bookings, setBookings] = useState([]);
+  const [bookings,     setBookings]     = useState([]);
 
   useEffect(() => {
     if (user) {
       api.getMyBookings()
-        .then(data => {
-          if (Array.isArray(data)) setBookings(data.map(reshapeBooking));
-        })
+        .then(data => { if (Array.isArray(data)) setBookings(data.map(reshapeBooking)); })
         .catch(() => {});
     } else {
       setBookings([]);
@@ -76,23 +73,34 @@ export function BookingProvider({ children }) {
   };
 
   const addBooking = async (bookingData) => {
-    try {
-      // ✅ Payload: cleaned and simplified for the backend
-      const payload = {
-        // Try to get numeric ID if flight.id is string "FL001", otherwise send as is
-        flight_id:    bookingData.flight.id.replace(/\D/g, "") || bookingData.flight.id,
-        user_id:      user?.id,
-        travel_class: bookingData.travelClass,
-        seat_number:  bookingData.seat || null,
-        total_amount: bookingData.totalAmount,
-        // Flat fields (matching standard SQL naming)
-        first_name:   bookingData.passenger.firstName,
-        last_name:    bookingData.passenger.lastName,
-        pax_email:    bookingData.passenger.email,
-        pax_phone:    bookingData.passenger.phone,
-        gender:       bookingData.passenger.gender,
-      };
+    const rawId    = bookingData.flight?.id ?? bookingData.flight?.flight_id ?? "";
+    const flightId = parseInt(String(rawId).replace(/\D/g, ""), 10);
+    const userId   = user?.id ?? user?.user_id ?? user?.userId;
 
+    if (isNaN(flightId)) throw new Error("Invalid flight ID: " + rawId);
+    if (!userId)         throw new Error("Missing user ID — please log in again");
+
+    const payload = {
+      flight_id:    flightId,
+      flight:       bookingData.flight,      // ✅ full flight object — backend upserts it
+      user_id:      userId,
+      travel_class: bookingData.travelClass,
+      seat_number:  bookingData.seat || null,
+      total_amount: bookingData.totalAmount,
+      passenger: {
+        firstName:  bookingData.passenger?.firstName  || "",
+        lastName:   bookingData.passenger?.lastName   || "",
+        email:      bookingData.passenger?.email      || null,
+        phone:      bookingData.passenger?.phone      || null,
+        gender:     bookingData.passenger?.gender     || null,
+        dob:        bookingData.passenger?.dob        || null,
+        passportNo: bookingData.passenger?.passportNo || null,
+      },
+    };
+
+    console.log("📦 PAYLOAD\n" + JSON.stringify(payload, null, 2));
+
+    try {
       const bookingRes = await api.createBooking(payload);
 
       if (!bookingRes?.booking_row_id) {
@@ -106,20 +114,18 @@ export function BookingProvider({ children }) {
       });
 
       const updated = await api.getMyBookings();
-      if (Array.isArray(updated)) {
-        setBookings(updated.map(reshapeBooking));
-      }
+      if (Array.isArray(updated)) setBookings(updated.map(reshapeBooking));
 
       return {
-        bookingId:   bookingRes.booking_id,
+        bookingId: bookingRes.booking_id,
         ...bookingData,
-        status:      "Confirmed",
-        bookedAt:    new Date().toISOString(),
+        status:   "Confirmed",
+        bookedAt: new Date().toISOString(),
       };
 
     } catch (err) {
       console.error("Booking failed:", err.message);
-      throw err; 
+      throw err;
     }
   };
 
@@ -136,7 +142,7 @@ export function BookingProvider({ children }) {
   return (
     <BookingContext.Provider value={{
       user, login, logout,
-      searchParams, setSearchParams,
+      searchParams,   setSearchParams,
       selectedFlight, setSelectedFlight,
       selectedClass,  setSelectedClass,
       passengerInfo,  setPassengerInfo,
