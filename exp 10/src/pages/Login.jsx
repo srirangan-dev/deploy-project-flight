@@ -27,15 +27,14 @@ export default function Login() {
       const res = await api.login({ email: form.email, password: form.password });
 
       if (res.token) {
-        // Store only the JWT token — user object comes from the DB via context
         localStorage.setItem("skybook_token", res.token);
-        login(res.user); // saves user into BookingContext (no localStorage for user)
+        login(res.user);
         navigate("/");
       } else {
         setError(res.message || "Login failed");
       }
     } catch (err) {
-      setError("Cannot connect to server. Is backend running?");
+      setError(err.message || "Cannot connect to server. Is backend running?"); // ✅ shows real error
     } finally {
       setLoading(false);
     }

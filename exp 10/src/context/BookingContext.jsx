@@ -160,3 +160,4 @@ export const useBooking = () => {
   if (!ctx) throw new Error("useBooking must be inside BookingProvider");
   return ctx;
 };
+

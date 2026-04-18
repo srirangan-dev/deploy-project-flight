@@ -46,12 +46,12 @@ exports.login = async (req, res) => {
       "SELECT * FROM users WHERE email = ?", [email]
     );
     if (rows.length === 0)
-      return res.status(404).json({ message: "User not found" });
+      return res.status(401).json({ message: "Invalid email or password" }); // ✅ was 404
 
     const user = rows[0];
     const match = await bcrypt.compare(password, user.password_hash);
     if (!match)
-      return res.status(401).json({ message: "Invalid password" });
+      return res.status(401).json({ message: "Invalid email or password" });
 
     const token = jwt.sign(
       { id: user.id, email: user.email, name: user.name },
