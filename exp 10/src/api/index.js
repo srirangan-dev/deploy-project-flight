@@ -1,4 +1,4 @@
-const BASE = "http://localhost:5000/api";
+const BASE = "https://skybook-backend-uf11.onrender.com/api";
 
 const getToken = () => localStorage.getItem("skybook_token");
 
