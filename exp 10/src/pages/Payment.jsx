@@ -6,6 +6,8 @@ import "./Payment.css";
 export default function Payment() {
   const navigate = useNavigate();
   const {
+
+    
     selectedFlight, selectedClass, passengerInfo,
     selectedSeat, addBooking, resetBookingFlow, user,
   } = useBooking();
