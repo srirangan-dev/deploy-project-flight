@@ -1,4 +1,8 @@
 .history-page { padding: 32px 0 60px; }
 .history-page h1 { font-size: 36px; }
+
+
 .tickets-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: 20px; margin-top: 28px; }
+
+
 @media (max-width: 480px) { .tickets-grid { grid-template-columns: 1fr; } }
