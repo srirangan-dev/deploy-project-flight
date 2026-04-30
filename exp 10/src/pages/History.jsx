@@ -5,6 +5,8 @@ import "./History.css";
 
 export default function History() {
   const { bookings, user } = useBooking();
+
+  
   const navigate = useNavigate();
 
   if (!user) {
