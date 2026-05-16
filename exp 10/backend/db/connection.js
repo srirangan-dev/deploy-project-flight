@@ -16,7 +16,9 @@ const pool = mysql.createPool({
 
 const db = pool.promise();
 
+
 db.getConnection()
+
   .then(conn => {
     console.log("✅ MySQL connected successfully");
     conn.release();
