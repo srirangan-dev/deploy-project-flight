@@ -5,12 +5,15 @@ import Home from './pages/Home';
 import Search from './pages/Search';
 import Booking from './pages/Booking';
 import Payment from './pages/Payment';
+
 import History from './pages/History';
 import Login from './pages/Login';
+
 import Register from './pages/Register';
 
 
 function App() {
+  
   return (
     <div className="App">
       <Navbar />
