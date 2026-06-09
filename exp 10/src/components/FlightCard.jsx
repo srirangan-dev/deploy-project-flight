@@ -2,6 +2,11 @@ import { useNavigate } from "react-router-dom";
 import { useBooking } from "../context/BookingContext";
 import "./FlightCard.css";
 
+
+
+
+
+
 export default function FlightCard({ flight }) {
   const navigate = useNavigate();
   const { setSelectedFlight, setSelectedClass } = useBooking();
@@ -25,6 +30,9 @@ export default function FlightCard({ flight }) {
           </div>
         </div>
 
+
+
+        
         <div className="flight-route">
           <div className="route-time">
             <div className="time">{flight.departure}</div>
