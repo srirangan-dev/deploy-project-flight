@@ -1,5 +1,8 @@
 import "./TicketCard.css";
 
+
+
+
 export default function TicketCard({ booking }) {
   const {
     bookingId, flight, passenger, seat, travelClass,
