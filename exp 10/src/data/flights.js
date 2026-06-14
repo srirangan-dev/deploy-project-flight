@@ -11,6 +11,8 @@ export const airports = [
   { code: "GOI", city: "Goa", name: "Goa International" },
 ];
 
+
+
 export const airlines = [
   { code: "AI", name: "Air India", logo: "✈" },
   { code: "6E", name: "IndiGo", logo: "✈" },
@@ -18,6 +20,8 @@ export const airlines = [
   { code: "UK", name: "Vistara", logo: "✈" },
   { code: "G8", name: "Go First", logo: "✈" },
 ];
+
+
 
 const randomDuration = (min, max) =>
   `${Math.floor(Math.random() * (max - min + 1)) + min}h ${[0, 15, 30, 45][Math.floor(Math.random() * 4)]}m`;
