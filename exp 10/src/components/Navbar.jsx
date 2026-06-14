@@ -3,12 +3,16 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useBooking } from "../context/BookingContext";
 import "./Navbar.css";
 
+
+
 export default function Navbar() {
   const { user, logout } = useBooking();
   const navigate = useNavigate();
   const location = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
 
+
+  
   const handleLogout = () => {
     logout();
     navigate("/login");
