@@ -6,9 +6,10 @@ import './index.css';
 
 
 import { BookingProvider } from './context/BookingContext';
+
+
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    
     <BrowserRouter> 
       <BookingProvider>
         <App />
