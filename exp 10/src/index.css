@@ -15,6 +15,8 @@
   --danger: #ef4444;
   --border: #1e2d4a;
 }
+
+
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
 body {
@@ -28,6 +30,8 @@ body {
 
 h1, h2, h3, h4 {
 
+
+  
   
   font-family: 'Cormorant Garamond', serif;
   font-weight: 600;
