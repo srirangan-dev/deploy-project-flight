@@ -9,14 +9,12 @@ import History from './pages/History';
 import Login from './pages/Login';
 import Register from './pages/Register';
 
-
-
 function App() {
   return (
     <div className="App">
       <Navbar />
 
-      
+  
       <main className="container">
         <Routes>
           <Route path="/" element={<Home />} />
